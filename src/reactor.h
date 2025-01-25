@@ -17,6 +17,7 @@ typedef struct reactor
     double n;               // Neutron population
     double T;               // Temperature
     double T_initial;       // Initial temperature
+    double T_mod_initial;   // Initial moderator temperature
     double T_coolant;       // Coolant temperature
 
     double dt;              // Time step
@@ -55,6 +56,7 @@ reactor_t* reactor_create(
     reactor->n = n;
     reactor->T = temperature;
     reactor->T_initial = temperature;
+    reactor->T_mod_initial = temperature;
     reactor->dt = dt;
     return reactor;
 }
@@ -91,6 +93,7 @@ void reactor_step(reactor_t* reactor)
         (P - Q) / reactor->C
     );
 
+    double delta_k_mod = -2e-4 * (reactor->T - reactor->T_mod_initial);
     double delta_k_doppler = -1e-5 * (reactor->T - reactor->T_initial);
-    reactor->k = reactor->k_control_rods + delta_k_doppler;
+    reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_mod;
 }
