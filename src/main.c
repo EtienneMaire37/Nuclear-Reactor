@@ -10,7 +10,7 @@ int main()
 {
     uint32_t steps_per_second = 1000;
     reactor_t* reactor = reactor_create(
-    1.005,       // k
+    1.005,        // k
     3.2e-7,       // κ
     1e-4,         // Λ
     0.0065,       // β
@@ -19,6 +19,7 @@ int main()
     300.0,        // Coolant temp
     1e4,          // Initial n
     300.0,        // Initial T
+    -1e-5,        // doppler coefficient
     1. / steps_per_second // dt
     );
 
