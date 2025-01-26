@@ -19,7 +19,6 @@ int main()
     300.0,        // Coolant temp
     1e4,          // Initial n
     300.0,        // Initial T
-    600.0,        // Target T   
     1. / steps_per_second // dt
     );
 
