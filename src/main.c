@@ -8,12 +8,23 @@
 
 int main()
 {
-    uint32_t steps_per_second = 10000;
+    uint32_t steps_per_second = 1000;
     reactor_t* reactor = reactor_create(
-        1.01, 3.2e-7, 1e-4, 0.0065, 1e7, 1e5, 300.0, 1e5, 600.0, 1. / steps_per_second
+    1.005,       // k
+    3.2e-7,       // κ
+    1e-4,         // Λ
+    0.0065,       // β
+    1e7,          // C = 1e7 J/K 
+    1e5,          // h = 1e5 W/K
+    300.0,        // Coolant temp
+    1e4,          // Initial n
+    300.0,        // Initial T
+    600.0,        // Target T   
+    1. / steps_per_second // dt
     );
 
-    for (uint16_t i = 0; i < 100; i++)
+
+    for (uint16_t i = 0; i < 1000; i++)
     {
         printf("s : %d\n", i);
         printf("    n = %f\n", floor(reactor->n));

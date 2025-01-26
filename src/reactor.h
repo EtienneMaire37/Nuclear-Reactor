@@ -26,7 +26,7 @@ typedef struct reactor
 reactor_t* reactor_create(
     double k, double power_proportionality_constant, double mean_generation_time,
     double delayed_neutron_fraction, double heat_capacity, double heat_transfer_coefficient,
-    double coolant_temperature, double n, double temperature, double dt)
+    double coolant_temperature, double n, double temperature, double target_temperature, double dt)
 {
     reactor_t* reactor = (reactor_t*)malloc(sizeof(reactor_t));
     reactor->k = reactor->k_control_rods = k;
@@ -55,8 +55,8 @@ reactor_t* reactor_create(
 
     reactor->n = n;
     reactor->T = temperature;
-    reactor->T_initial = temperature;
-    reactor->T_mod_initial = temperature;
+    reactor->T_initial = reactor->T;
+    reactor->T_mod_initial = target_temperature;
     reactor->dt = dt;
     return reactor;
 }
@@ -93,7 +93,7 @@ void reactor_step(reactor_t* reactor)
         (P - Q) / reactor->C
     );
 
-    double delta_k_mod = -2e-4 * (reactor->T - reactor->T_mod_initial);
+    // double delta_k_mod = -2e-4 * (reactor->T - reactor->T_mod_initial);
     double delta_k_doppler = -1e-5 * (reactor->T - reactor->T_initial);
-    reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_mod;
+    reactor->k = reactor->k_control_rods + delta_k_doppler;// + delta_k_mod;
 }
