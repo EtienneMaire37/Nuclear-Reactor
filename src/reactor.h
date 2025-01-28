@@ -131,23 +131,19 @@ void reactor_step(reactor_t* reactor)
         LAMBDA_I * reactor->I + GAMMA_X * phi - LAMBDA_X * reactor->X - SIGMA_X * phi * reactor->X
     );
 
-    double delta_k_xenon = -SIGMA_X * reactor->X / (2.41 * 1e24);  // Assume Σ_f = 2.41e24 cm^-1
+    double delta_k_xenon = -SIGMA_X * reactor->X / 2.41e24;  // Assume Σ_f = 2.41e24 cm^-1
     double delta_k_doppler = reactor->alpha_doppler * (reactor->T - reactor->T_initial);
+    double delta_k_mod = -2e-4 * (reactor->T - reactor->T_initial);
 
     double error = reactor->target_n - reactor->n;
     reactor->pid_error_sum += error * reactor->dt;
     double derivative = (error - reactor->pid_last_error) / reactor->dt;
     reactor->pid_last_error = error;
 
-    // Adjust control rods
-
-    // printf("    k_control_rods = %f\n", reactor->k_control_rods);
     double delta_k = reactor->pid_kp * error + reactor->pid_ki * reactor->pid_error_sum + reactor->pid_kd * derivative;
+
     reactor->k_control_rods += clamp(delta_k, -0.0001, 0.0001);
     reactor->k_control_rods = clamp(reactor->k_control_rods, CR_MIN, CR_MAX);
 
-    reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_xenon;
-    // printf("    delta_k_xenon = %f\n", delta_k_xenon);
-    // printf("    delta_k_doppler = %f\n", delta_k_doppler);
-    // printf("    xenon concentration = %f\n", reactor->X);
+    reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_mod + delta_k_xenon;
 }
