@@ -31,7 +31,7 @@ int main()
     );
 
 
-    for (uint16_t i = 0; i < 10000; i++)
+    for (uint32_t i = 0; i < 100000; i++)
     {
         printf("s : %d\n", i);
         printf("    n = %f\n", floor(reactor->n));
@@ -39,7 +39,7 @@ int main()
         printf("    k = %f\n", reactor->k);
         printf("    P = %f W\n", reactor->kappa * reactor->n);
         printf("    control_rods = %f\n", 1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
-        for (uint16_t j = 0; j < steps_per_second; j++)
+        for (uint32_t j = 0; j < steps_per_second; j++)
             reactor_step(reactor);
 
         if (reactor->target_n < TARGET_N)
