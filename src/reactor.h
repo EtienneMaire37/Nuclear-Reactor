@@ -124,11 +124,11 @@ void reactor_step(reactor_t* reactor)
         (P - Q) / reactor->C
     );
 
-    double Φ = reactor->n / reactor->lambda; // Neutron flux
+    double phi = reactor->n / reactor->lambda; // Neutron flux
 
-    reactor->I += reactor->dt * (GAMMA_I * Φ - LAMBDA_I * reactor->I);
+    reactor->I += reactor->dt * (GAMMA_I * phi - LAMBDA_I * reactor->I);
     reactor->X += reactor->dt * (
-        LAMBDA_I * reactor->I + GAMMA_X * Φ - LAMBDA_X * reactor->X - SIGMA_X * Φ * reactor->X
+        LAMBDA_I * reactor->I + GAMMA_X * phi - LAMBDA_X * reactor->X - SIGMA_X * phi * reactor->X
     );
 
     double delta_k_xenon = -SIGMA_X * reactor->X / (2.41 * 1e24);  // Assume Σ_f = 2.41e24 cm^-1
