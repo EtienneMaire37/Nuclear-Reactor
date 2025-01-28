@@ -24,7 +24,7 @@ int main()
     4e7,          // h
     215.,         // Coolant temp
     1e4,          // Initial n
-    25.,          // Initial T
+    215.,         // Initial T
     -1e-5,        // doppler coefficient
     1e5,          // target n
     1. / steps_per_second // dt
