@@ -8,10 +8,7 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define clamp(t, a, b) min(max(t, a), b)
 
-// #ifndef tanh
-// #define tanh(x) ((exp(x) - exp(-(x))) / (exp(x) + exp(-(x))))
-// #endif
-
+#include "steam.h"
 #include "reactor.h"
 
 #define TARGET_N 9.6e15
@@ -39,7 +36,7 @@ int main()
     printf("------------------------- GE BWR/4 -------------------------\n");
 
 
-    for (uint32_t i = 0; i < 100000; i++)
+    for (uint32_t i = 0; i < 1000000; i++)
     {
         printf("time : %ds\n", i);
         printf("    n = %f\n", floor(reactor->n));
