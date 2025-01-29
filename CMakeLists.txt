@@ -10,7 +10,10 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_COMPILER gcc)
 
 # Set the C flags
-set(CMAKE_C_FLAGS "-Wall -Wextra -Werror -Wpedantic -Ofast -lm")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Werror -Wpedantic -Ofast")
 
 # Add the executable
 add_executable(NuclearReactor src/main.c)
+
+# Add the math library
+target_link_libraries(NuclearReactor m)

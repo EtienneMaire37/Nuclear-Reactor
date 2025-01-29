@@ -8,6 +8,10 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define clamp(t, a, b) min(max(t, a), b)
 
+// #ifndef tanh
+// #define tanh(x) ((exp(x) - exp(-(x))) / (exp(x) + exp(-(x))))
+// #endif
+
 #include "reactor.h"
 
 #define TARGET_N 9.6e15
@@ -27,6 +31,8 @@ int main()
     215. + 273.15,         // Initial T
     -1e-5,        // doppler coefficient
     1e5,          // target n
+    784. / 3000., // efficiency
+    285. + 273.15,         // coolant boiling point
     1. / steps_per_second // dt
     );
 
@@ -39,8 +45,8 @@ int main()
         printf("    n = %f\n", floor(reactor->n));
         printf("    T = %f K\n", reactor->T);
         printf("    k = %f\n", reactor->k);
-        printf("    P (thermal) = %f W\n", reactor->power_output);
-        printf("    P (electric) = %f W\n", reactor->power_output * 0.2613333333);
+        printf("    P (thermal) = %f W\n", reactor->P_thermal);
+        printf("    P (electric) = %f W\n", reactor->P_electric);
         printf("    control_rods = %f\n", 1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
         for (uint32_t j = 0; j < steps_per_second; j++)
             reactor_step(reactor);

@@ -10,6 +10,8 @@ typedef struct reactor
     double C;   // Heat capacity
     double h;   // Heat transfer coefficient
     double alpha_doppler; // Doppler coefficient
+    double efficiency;  // Thermal to electric conversion efficiency
+    double boiling_point; // Coolant boiling point
 
     double lambda_i[6];
     double beta_i[6];
@@ -20,7 +22,8 @@ typedef struct reactor
     double T_initial;       // Initial temperature
     double T_coolant;       // Coolant temperature
     double target_n;        // Target neutron population
-    double power_output;    // Power output
+    double P_thermal;       // Power output
+    double P_electric;      // Electricity output
 
     double pid_kp;     // Proportional gain
     double pid_ki;     // Integral gain
@@ -47,7 +50,7 @@ reactor_t* reactor_create(
     double k, double power_proportionality_constant, double mean_generation_time,
     double delayed_neutron_fraction, double heat_capacity, double heat_transfer_coefficient,
     double coolant_temperature, double n, double temperature, double doppler_coefficient, 
-    double target_n, double dt)
+    double target_n, double efficiency, double coolant_boiling_point, double dt)
 {
     reactor_t* reactor = (reactor_t*)malloc(sizeof(reactor_t));
     reactor->k = reactor->k_control_rods = k;
@@ -84,6 +87,9 @@ reactor_t* reactor_create(
     reactor->pid_error_sum = 0;
     reactor->pid_last_error = 0;
     reactor->target_n = target_n;
+    reactor->P_electric = 0;
+    reactor->efficiency = efficiency;
+    reactor->boiling_point = coolant_boiling_point;
 
     reactor->n = n;
     reactor->T = temperature;
@@ -121,11 +127,14 @@ void reactor_step(reactor_t* reactor)
     double P = reactor->kappa * reactor->n; // Power output
     double Q = reactor->h * (reactor->T - reactor->T_coolant); // Heat loss
 
-    reactor->power_output = P;
+    reactor->P_thermal = P;
 
     reactor->T += reactor->dt * (
         (P - Q) / reactor->C
     );
+
+    reactor->P_electric = reactor->T < reactor->boiling_point ? 0 : 
+    tanh((reactor->T - reactor->boiling_point) / 4) * reactor->efficiency * reactor->P_thermal;
 
     double phi = reactor->n / reactor->lambda; // Neutron flux
 
