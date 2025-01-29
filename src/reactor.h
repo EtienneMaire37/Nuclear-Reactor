@@ -20,6 +20,7 @@ typedef struct reactor
     double T_initial;       // Initial temperature
     double T_coolant;       // Coolant temperature
     double target_n;        // Target neutron population
+    double power_output;    // Power output
 
     double pid_kp;     // Proportional gain
     double pid_ki;     // Integral gain
@@ -119,6 +120,8 @@ void reactor_step(reactor_t* reactor)
 
     double P = reactor->kappa * reactor->n; // Power output
     double Q = reactor->h * (reactor->T - reactor->T_coolant); // Heat loss
+
+    reactor->power_output = P;
 
     reactor->T += reactor->dt * (
         (P - Q) / reactor->C

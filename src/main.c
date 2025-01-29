@@ -15,7 +15,7 @@
 int main()
 {
     uint32_t steps_per_second = 1000;
-    reactor_t* reactor = reactor_create(    // BWR-4
+    reactor_t* reactor = reactor_create(    // GE BWR/4
     CR_MIN,       // k
     3.2e-7,       // κ
     1e-4,         // Λ
@@ -30,14 +30,17 @@ int main()
     1. / steps_per_second // dt
     );
 
+    printf("------------------------- GE BWR/4 -------------------------\n");
+
 
     for (uint32_t i = 0; i < 100000; i++)
     {
-        printf("s : %d\n", i);
+        printf("time : %ds\n", i);
         printf("    n = %f\n", floor(reactor->n));
         printf("    T = %f K\n", reactor->T);
         printf("    k = %f\n", reactor->k);
-        printf("    P = %f W\n", reactor->kappa * reactor->n);
+        printf("    P (thermal) = %f W\n", reactor->power_output);
+        printf("    P (electric) = %f W\n", reactor->power_output * 0.2613333333);
         printf("    control_rods = %f\n", 1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
         for (uint32_t j = 0; j < steps_per_second; j++)
             reactor_step(reactor);
