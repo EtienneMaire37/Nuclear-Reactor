@@ -30,17 +30,18 @@ int main()
     1e5,          // target n
     784. / 3000., // efficiency
     285. + 273.15,         // coolant boiling point
+    7,            // 7MPa
     1. / steps_per_second // dt
     );
 
     printf("------------------------- GE BWR/4 -------------------------\n");
 
 
-    for (uint32_t i = 0; i < 1000000; i++)
+    for (uint32_t i = 0; i < 100000; i++)
     {
         printf("time : %ds\n", i);
         printf("    n = %f\n", floor(reactor->n));
-        printf("    T = %f K\n", reactor->T);
+        printf("    T = %f °C\n", reactor->T - 273.15);
         printf("    k = %f\n", reactor->k);
         printf("    P (thermal) = %f W\n", reactor->P_thermal);
         printf("    P (electric) = %f W\n", reactor->P_electric);
