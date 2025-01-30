@@ -26,7 +26,7 @@ int main()
     215. + 273.15,         // Coolant temp
     1e4,          // Initial n
     215. + 273.15,         // Initial T
-    -1e-5,        // doppler coefficient
+    0, //-1e-5,        // doppler coefficient
     1e5,          // target n
     784. / 3000., // efficiency
     285. + 273.15,         // coolant boiling point

@@ -13,6 +13,10 @@ typedef struct reactor
     double efficiency;  // Thermal to electric conversion efficiency
     double boiling_point; // Coolant boiling point
 
+    double mod_density;       // Current moderator density (kg/m³)
+    double void_fraction;     // Steam void fraction (0-1)
+    double ref_mod_density;   // Reference moderator density (kg/m³)
+
     double lambda_i[6];
     double beta_i[6];
     double C_i[6];
@@ -92,6 +96,7 @@ reactor_t* reactor_create(
     reactor->P_electric = 0;
     reactor->efficiency = efficiency;
     reactor->boiling_point = coolant_boiling_point;
+    reactor->ref_mod_density = get_water_density(pressure, temperature - 273.15, coolant_boiling_point - 273.15);
 
     reactor->n = n;
     reactor->T = temperature;
@@ -104,47 +109,6 @@ reactor_t* reactor_create(
 void reactor_free(reactor_t* reactor)
 {
     free(reactor);
-}
-
-void get_enthalpies(double pressure, double temperature, double* h_water, double* h_steam) 
-{
-    *h_water = 0.0;
-    *h_steam = 0.0;
-    
-    double min_pressure_diff = 1e9;
-    int best_index = 0;
-    for (int i = 0; i < STEAM_TABLE_SIZE; i++) 
-    {
-        double diff = fabs(steam_table[i].pressure - pressure);
-        if (diff < min_pressure_diff) 
-        {
-            min_pressure_diff = diff;
-            best_index = i;
-        }
-    }
-    
-    steam_table_entry_t entry = steam_table[best_index];
-    if (temperature <= entry.temperature) 
-    {
-        *h_water = entry.h_water;
-        *h_steam = entry.h_steam;
-    } 
-    else 
-    {
-        int next_index = best_index + 1;
-        if (next_index < STEAM_TABLE_SIZE && steam_table[next_index].pressure == entry.pressure) 
-        {
-            steam_table_entry_t next_entry = steam_table[next_index];
-            double frac = (temperature - entry.temperature) / (next_entry.temperature - entry.temperature);
-            *h_water = entry.h_water + frac * (next_entry.h_water - entry.h_water);
-            *h_steam = entry.h_steam + frac * (next_entry.h_steam - entry.h_steam);
-        } 
-        else 
-        {
-            *h_water = entry.h_water;
-            *h_steam = entry.h_steam;
-        }
-    }
 }
 
 void reactor_step(reactor_t* reactor)
@@ -179,8 +143,19 @@ void reactor_step(reactor_t* reactor)
     double h_water, h_steam;
     get_enthalpies(reactor->pressure, reactor->T - 273.15, &h_water, &h_steam);  // T in °C
 
+    reactor->mod_density = get_water_density(reactor->pressure, reactor->T - 273.15, reactor->boiling_point - 273.15);
+    reactor->void_fraction = calculate_void_fraction(h_water, 
+                                    h_water + (reactor->T - reactor->T_coolant)*4.1868, 
+                                    h_steam);
+
     h_water *= 1000;
     h_steam *= 1000;
+
+    double density_ratio = reactor->ref_mod_density / reactor->mod_density;
+    double delta_k_density = 0.03 * (density_ratio - 1);
+    double delta_k_void = -0.15 * reactor->void_fraction;
+
+    double delta_k_mod = delta_k_density + delta_k_void;
 
     double delta_h = h_steam - h_water;
     double m_dot = (delta_h > 0) ? reactor->P_thermal / delta_h : 0.;
@@ -198,7 +173,6 @@ void reactor_step(reactor_t* reactor)
 
     double delta_k_xenon = -SIGMA_X * reactor->X / 2.41e24;  // Assume Σ_f = 2.41e24 cm^-1
     double delta_k_doppler = reactor->alpha_doppler * (reactor->T - reactor->T_initial);
-    double delta_k_mod = -2e-4 * (reactor->T - reactor->T_initial);
 
     double error = reactor->target_n - reactor->n;
     reactor->pid_error_sum += error * reactor->dt;
