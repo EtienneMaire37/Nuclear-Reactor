@@ -11,6 +11,9 @@
 #include "steam.h"
 #include "reactor.h"
 
+#include "steam.c"
+#include "reactor.c"
+
 #define TARGET_N 9.6e15
 
 int main()
