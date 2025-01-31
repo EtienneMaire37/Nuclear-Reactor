@@ -2,49 +2,50 @@
 
 typedef struct reactor 
 {
-    double k;   // k factor
-    double k_control_rods;
-    double kappa;   // Power proportionality constant
-    double lambda;   // Mean generation time
-    double beta;   // Delayed neutron fraction
-    double C;   // Heat capacity
-    double h;   // Heat transfer coefficient
-    double alpha_doppler; // Doppler coefficient
-    double efficiency;  // Thermal to electric conversion efficiency
-    double boiling_point; // Coolant boiling point
+    real_t k;   // k factor
+    real_t k_control_rods;
+    real_t kappa;   // Power proportionality constant
+    real_t lambda;   // Mean generation time
+    real_t beta;   // Delayed neutron fraction
+    real_t C;   // Heat capacity
+    real_t h;   // Heat transfer coefficient
+    real_t alpha_doppler; // Doppler coefficient
+    real_t efficiency;  // Thermal to electric conversion efficiency
+    real_t boiling_point; // Coolant boiling point
 
-    double mod_density;       // Current moderator density (kg/m³)
-    double void_fraction;     // Steam void fraction (0-1)
-    double ref_mod_density;   // Reference moderator density (kg/m³)
+    real_t mod_density;       // Current moderator density (kg/m³)
+    real_t void_fraction;     // Steam void fraction (0-1)
+    real_t ref_mod_density;   // Reference moderator density (kg/m³)
 
-    double lambda_i[6];
-    double beta_i[6];
-    double C_i[6];
+    real_t lambda_i[6];
+    real_t beta_i[6];
+    real_t C_i[6];
 
-    double n;               // Neutron population
-    double T;               // Temperature          (K)
-    double T_initial;       // Initial temperature  (K)
-    double T_coolant;       // Coolant temperature  (K)
-    double target_n;        // Target neutron population
-    double P_thermal;       // Power output       (W)
-    double P_electric;      // Electricity output (W)
-    double pressure;        // Core pressure (MPa)
+    real_t n;               // Neutron population
+    real_t T;               // Temperature          (K)
+    real_t T_initial;       // Initial temperature  (K)
+    real_t T_coolant;       // Coolant temperature  (K)
+    real_t target_n;        // Target neutron population
+    real_t P_thermal;       // Power output       (W)
+    real_t P_electric;      // Electricity output (W)
+    real_t pressure;        // Core pressure (MPa)
 
-    double pid_kp;     // Proportional gain
-    double pid_ki;     // Integral gain
-    double pid_kd;     // Derivative gain
-    double pid_error_sum;
-    double pid_last_error;
+    real_t pid_kp;     // Proportional gain
+    real_t pid_ki;     // Integral gain
+    real_t pid_kd;     // Derivative gain
+    real_t pid_error_sum;
+    real_t pid_last_error;
 
-    double X;        // Xenon-135 concentration
-    double I;        // Iodine-135 concentration
+    real_t X;        // Xenon-135 concentration
+    real_t I;        // Iodine-135 concentration
 
-    double dt;              // Time step
+    real_t dt;              // Time step
 } reactor_t;
 
 #define LAMBDA_I 2.9e-5     // I-135 decay constant (s^-1)
 #define LAMBDA_X 2.1e-5     // Xe-135 decay constant (s^-1)
-#define SIGMA_X  3e-18      // Xe-135 absorption cross section (cm^2)
+#define SIGMA_X  2.7e-18    // Xe-135 absorption cross-section (cm²) at thermal energies
+#define SIGMA_F  0.0438     // Macroscopic fission cross-section (cm⁻¹) for U-235
 #define GAMMA_I  0.064      // I-135 yield per fission
 #define GAMMA_X  0.002      // Xe-135 yield per fission
 
@@ -52,9 +53,9 @@ typedef struct reactor
 #define CR_MAX   1.05       // Maximum control rod position
 
 reactor_t* reactor_create(
-    double k, double power_proportionality_constant, double mean_generation_time,
-    double delayed_neutron_fraction, double heat_capacity, double heat_transfer_coefficient,
-    double coolant_temperature, double n, double temperature, double doppler_coefficient, 
-    double target_n, double efficiency, double coolant_boiling_point, double pressure, double dt);
+    real_t k, real_t power_proportionality_constant, real_t mean_generation_time,
+    real_t delayed_neutron_fraction, real_t heat_capacity, real_t heat_transfer_coefficient,
+    real_t coolant_temperature, real_t n, real_t temperature, real_t doppler_coefficient, 
+    real_t target_n, real_t efficiency, real_t coolant_boiling_point, real_t pressure, real_t dt);
 void reactor_free(reactor_t* reactor);
 void reactor_step(reactor_t* reactor);

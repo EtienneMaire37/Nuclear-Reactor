@@ -1,10 +1,10 @@
 #pragma once
 
 reactor_t* reactor_create(
-    double k, double power_proportionality_constant, double mean_generation_time,
-    double delayed_neutron_fraction, double heat_capacity, double heat_transfer_coefficient,
-    double coolant_temperature, double n, double temperature, double doppler_coefficient, 
-    double target_n, double efficiency, double coolant_boiling_point, double pressure, double dt)
+    real_t k, real_t power_proportionality_constant, real_t mean_generation_time,
+    real_t delayed_neutron_fraction, real_t heat_capacity, real_t heat_transfer_coefficient,
+    real_t coolant_temperature, real_t n, real_t temperature, real_t doppler_coefficient, 
+    real_t target_n, real_t efficiency, real_t coolant_boiling_point, real_t pressure, real_t dt)
 {
     reactor_t* reactor = (reactor_t*)malloc(sizeof(reactor_t));
     reactor->k = reactor->k_control_rods = k;
@@ -17,8 +17,8 @@ reactor_t* reactor_create(
     reactor->alpha_doppler = doppler_coefficient;
     reactor->pressure = pressure;
 
-    reactor->X = 0;
-    reactor->I = 0;
+    reactor->X = 1e13;
+    reactor->I = 1e14;
     
     reactor->lambda_i[0] = 0.0124;
     reactor->lambda_i[1] = 0.0305;
@@ -80,8 +80,8 @@ void reactor_step(reactor_t* reactor)
         );
     }
 
-    double P = reactor->kappa * reactor->n; // Power output
-    double Q = reactor->h * (reactor->T - reactor->T_coolant); // Heat loss
+    real_t P = reactor->kappa * reactor->n; // Power output
+    real_t Q = reactor->h * (reactor->T - reactor->T_coolant); // Heat loss
 
     reactor->P_thermal = P;
 
@@ -89,7 +89,7 @@ void reactor_step(reactor_t* reactor)
         (P - Q) / reactor->C
     );
 
-    double h_water, h_steam;
+    real_t h_water, h_steam;
     get_enthalpies(reactor->pressure, reactor->T - 273.15, &h_water, &h_steam);  // T in °C
 
     reactor->mod_density = get_water_density(reactor->pressure, reactor->T - 273.15, reactor->boiling_point - 273.15);
@@ -100,38 +100,46 @@ void reactor_step(reactor_t* reactor)
     h_water *= 1000;
     h_steam *= 1000;
 
-    double density_ratio = reactor->ref_mod_density / reactor->mod_density;
-    double delta_k_density = 0.03 * (density_ratio - 1);
-    double delta_k_void = -0.15 * reactor->void_fraction;
+    real_t density_ratio = reactor->ref_mod_density / reactor->mod_density;
+    real_t delta_k_density = 0.003 * (density_ratio - 1);
+    real_t delta_k_void = -0.015 * reactor->void_fraction;
 
-    double delta_k_mod = delta_k_density + delta_k_void;
+    real_t delta_k_mod = delta_k_density + delta_k_void;
 
-    double delta_h = h_steam - h_water;
-    double m_dot = (delta_h > 0) ? reactor->P_thermal / delta_h : 0.;
+    real_t delta_h = h_steam - h_water;
+    real_t m_dot = (delta_h > 0) ? reactor->P_thermal / delta_h : 0.;
     
     reactor->P_electric = m_dot * (h_steam - h_water) * reactor->efficiency * 0.95;
 
     if (reactor->P_electric < 0) reactor->P_electric = 0.;
 
-    double phi = reactor->n / reactor->lambda; // Neutron flux
+    // real_t phi = reactor->n / reactor->lambda; // Neutron flux
+    real_t v = 2.2e5;  // Thermal neutron velocity (cm/s)
+    real_t phi = reactor->n * v / reactor->lambda;  // n/cm²/s
 
-    reactor->I += reactor->dt * (GAMMA_I * phi - LAMBDA_I * reactor->I);
-    reactor->X += reactor->dt * (
-        LAMBDA_I * reactor->I + GAMMA_X * phi - LAMBDA_X * reactor->X - SIGMA_X * phi * reactor->X
-    );
+    // Implicit Integration
+    real_t termI = GAMMA_I * SIGMA_F * phi;
+    reactor->I = (reactor->I + reactor->dt * termI) / (1 + reactor->dt * LAMBDA_I);
+    reactor->I = max(reactor->I, 0.); 
 
-    double delta_k_xenon = -SIGMA_X * reactor->X / 2.41e24;  // Assume Σ_f = 2.41e24 cm^-1
-    double delta_k_doppler = reactor->alpha_doppler * (reactor->T - reactor->T_initial);
+    real_t termX = LAMBDA_I * reactor->I + GAMMA_X * SIGMA_F * phi;
+    real_t denomX = 1 + reactor->dt * (LAMBDA_X + SIGMA_X * phi);
+    reactor->X = (reactor->X + reactor->dt * termX) / denomX;
+    reactor->X = max(reactor->X, 0.);  
 
-    double error = reactor->target_n - reactor->n;
+    real_t delta_k_xenon = -SIGMA_X * reactor->X / SIGMA_F;
+    real_t delta_k_doppler = reactor->alpha_doppler * (reactor->T - reactor->T_initial);
+
+    real_t error = reactor->target_n - reactor->n;
     reactor->pid_error_sum += error * reactor->dt;
-    double derivative = (error - reactor->pid_last_error) / reactor->dt;
+    real_t derivative = (error - reactor->pid_last_error) / reactor->dt;
     reactor->pid_last_error = error;
 
-    double delta_k = reactor->pid_kp * error + reactor->pid_ki * reactor->pid_error_sum + reactor->pid_kd * derivative;
+    real_t delta_k = reactor->pid_kp * error + reactor->pid_ki * reactor->pid_error_sum + reactor->pid_kd * derivative;
 
-    reactor->k_control_rods += clamp(delta_k, -0.0001, 0.0001);
+    reactor->k_control_rods += clamp(delta_k, -reactor->dt, reactor->dt);
     reactor->k_control_rods = clamp(reactor->k_control_rods, CR_MIN, CR_MAX);
 
     reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_mod + delta_k_xenon;
+    // printf("%f %f %f\n", delta_k_doppler, delta_k_mod, delta_k_xenon);
 }

@@ -2,10 +2,10 @@
 
 typedef struct steam_table_entry
 {
-    double pressure;    // MPa
-    double temperature; // °C
-    double h_water;     // Specific enthalpy of liquid water (kJ/kg)
-    double h_steam;     // Specific enthalpy of saturated steam (kJ/kg)
+    real_t pressure;    // MPa
+    real_t temperature; // °C
+    real_t h_water;     // Specific enthalpy of liquid water (kJ/kg)
+    real_t h_steam;     // Specific enthalpy of saturated steam (kJ/kg)
 } steam_table_entry_t;
 
 steam_table_entry_t steam_table[] = 
@@ -175,6 +175,6 @@ steam_table_entry_t steam_table[] =
 
 #define STEAM_TABLE_SIZE (sizeof(steam_table) / sizeof(steam_table_entry_t))
 
-void get_enthalpies(double pressure, double temperature, double* h_water, double* h_steam);
-double get_water_density(double pressure, double temperature, double boiling_point) ;
-double calculate_void_fraction(double h_liquid, double h_actual, double h_vapor) ;
+void get_enthalpies(real_t pressure, real_t temperature, real_t* h_water, real_t* h_steam);
+real_t get_water_density(real_t pressure, real_t temperature, real_t boiling_point) ;
+real_t calculate_void_fraction(real_t h_liquid, real_t h_actual, real_t h_vapor) ;
