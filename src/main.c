@@ -20,10 +20,10 @@
 
 int main()
 {
-    uint32_t steps_per_second = 10000;
+    uint32_t steps_per_second = 1000;
     reactor_t* reactor = reactor_create(    // GE BWR/4
     CR_MIN,         // k
-    3.6e-7,           // κ
+    3.2e-7,           // κ
     1e-4,           // Λ
     0.0065,         // β
     1e7,            // C 
@@ -64,7 +64,7 @@ int main()
         //     reactor->h = 0;
 
         if (reactor->target_n < TARGET_N)
-            reactor->target_n *= 1.003;
+            reactor->target_n *= 1.005;
         else
             reactor->target_n = TARGET_N;
     }
