@@ -52,7 +52,7 @@ int main()
 
     for (uint32_t i = 0; i < 1000000; i++)
     {
-        wprintf(L"%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
+        wprintf(L"%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
         i, reactor->n, reactor->T - 273.15, reactor->k, 
         reactor->P_thermal, reactor->X, reactor->I, reactor->P_electric, 
         1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
