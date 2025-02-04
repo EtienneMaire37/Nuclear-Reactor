@@ -42,12 +42,15 @@ typedef struct reactor
     real_t dt;              // Time step
 } reactor_t;
 
-#define LAMBDA_I 2.9e-5     // I-135 decay constant (s^-1)
-#define LAMBDA_X 2.1e-5     // Xe-135 decay constant (s^-1)
-#define SIGMA_X  2.7e-18    // Xe-135 absorption cross-section (cm²) at thermal energies
-#define SIGMA_F  0.0438     // Macroscopic fission cross-section (cm⁻¹) for U-235
-#define GAMMA_I  0.064      // I-135 yield per fission
-#define GAMMA_X  0.002      // Xe-135 yield per fission
+#define MIN_NEUTRONS 1e-10
+#define MAX_XENON    1e25    // Prevent overflow
+
+#define LAMBDA_I     2.9e-5  // I-135 decay (s⁻¹)
+#define LAMBDA_X     2.1e-5  // Xe-135 decay (s⁻¹)
+#define SIGMA_X      3e-18   // Xe-135 absorption cross-section (cm²)
+#define GAMMA_I      0.064   // I-135 yield
+#define GAMMA_X      0.002   // Xe-135 yield
+#define SIGMA_F      0.0438  // Macroscopic fission cross-section (cm⁻¹)
 
 #define CR_MIN   0.95       // Minimum control rod position
 #define CR_MAX   1.05       // Maximum control rod position

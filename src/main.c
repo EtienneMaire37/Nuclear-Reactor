@@ -39,29 +39,18 @@ int main()
     1. / steps_per_second // dt
     );
 
-    // printf("------------------------- GE BWR/4 -------------------------\n");
-    printf("time,neutron population,core temperature,multiplication factor k,thermal power,xenon concentration,electric power,control rods' positions\n");
+    printf("time,neutron population,core temperature,multiplication factor k,thermal power,xenon concentration,iodine concentration,electric power,control rods' positions\n");
 
 
     for (uint32_t i = 0; i < 1000000; i++)
     {
-        // printf("time : %ds\n", i);
-        // printf("    n = %f\n", floor(reactor->n));
-        // printf("    T = %f °C\n", reactor->T - 273.15);
-        // printf("    k = %f\n", reactor->k);
-        // printf("    P (thermal) = %f W\n", reactor->P_thermal);
-        // printf("    P (electric) = %f W\n", reactor->P_electric);
-        // printf("    control_rods = %f\n", 1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
-        printf("%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
+        printf("%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
         i, reactor->n, reactor->T - 273.15, reactor->k, 
-        reactor->P_thermal, reactor->X, reactor->P_electric, 
+        reactor->P_thermal, reactor->X, reactor->I, reactor->P_electric, 
         1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
 
         for (uint32_t j = 0; j < steps_per_second; j++)
             reactor_step(reactor);
-
-        // if (i == 10000)
-        //     reactor->h = 0;
 
         if (reactor->target_n < TARGET_N)
             reactor->target_n *= 1.005;

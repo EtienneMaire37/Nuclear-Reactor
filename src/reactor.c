@@ -62,21 +62,19 @@ void reactor_free(reactor_t* reactor)
 
 void reactor_step(reactor_t* reactor)
 {
+    // real_t theta = 0.5;  // Implicit-explicit balance
+    // real_t rho = reactor->k - 1.0;
+    // real_t prompt_term = (rho * (1 - reactor->beta) - 1) / reactor->lambda;
+
     reactor->n += reactor->dt * (
-        (reactor->k * (1 - reactor->beta) - 1) * reactor->n / reactor->lambda
+        ((1 - reactor->beta) * reactor->k - 1) * reactor->n / reactor->lambda
     );
-
-    for (int i = 0; i < 6; i++)
+    reactor->n = clamp(reactor->n, MIN_NEUTRONS, 1e20);
+    for (uint8_t i = 0; i < 6; i++) 
     {
-        reactor->n += reactor->dt * (
-            reactor->lambda_i[i] * reactor->C_i[i]
-        );
-    }
-
-    for (int i = 0; i < 6; i++)
-    {
+        reactor->n += reactor->dt * reactor->lambda_i[i] * reactor->C_i[i];
         reactor->C_i[i] += reactor->dt * (
-            reactor->k * reactor->beta_i[i] * reactor->n / reactor->lambda - reactor->lambda_i[i] * reactor->C_i[i]
+            reactor->beta_i[i] * reactor->k * reactor->n / reactor->lambda - reactor->lambda_i[i] * reactor->C_i[i]
         );
     }
 
@@ -94,7 +92,7 @@ void reactor_step(reactor_t* reactor)
 
     reactor->mod_density = get_water_density(reactor->pressure, reactor->T - 273.15, reactor->boiling_point - 273.15);
     reactor->void_fraction = calculate_void_fraction(h_water, 
-                                    h_water + (reactor->T - reactor->T_coolant)*4.1868, 
+                                    h_water + (reactor->T - reactor->T_coolant) * 4.1868, 
                                     h_steam);
 
     h_water *= 1000;
@@ -115,29 +113,33 @@ void reactor_step(reactor_t* reactor)
 
     // real_t phi = reactor->n / reactor->lambda; // Neutron flux
     real_t v = 2.2e5;  // Thermal neutron velocity (cm/s)
-    real_t phi = reactor->n * v / reactor->lambda;  // n/cm²/s
+    real_t phi = reactor->n / v / reactor->lambda;  // n/cm²/s
 
     // Implicit Integration
     real_t termI = GAMMA_I * SIGMA_F * phi;
     reactor->I = (reactor->I + reactor->dt * termI) / (1 + reactor->dt * LAMBDA_I);
-    reactor->I = max(reactor->I, 0.); 
+    reactor->I = clamp(reactor->I, 0.0, 1e20);
 
     real_t termX = LAMBDA_I * reactor->I + GAMMA_X * SIGMA_F * phi;
     real_t denomX = 1 + reactor->dt * (LAMBDA_X + SIGMA_X * phi);
     reactor->X = (reactor->X + reactor->dt * termX) / denomX;
-    reactor->X = max(reactor->X, 0.);  
+    reactor->X = clamp(reactor->X, 0.0, MAX_XENON);
 
     real_t delta_k_xenon = -SIGMA_X * reactor->X / SIGMA_F;
     real_t delta_k_doppler = reactor->alpha_doppler * (reactor->T - reactor->T_initial);
 
     real_t error = reactor->target_n - reactor->n;
     reactor->pid_error_sum += error * reactor->dt;
+    reactor->pid_error_sum = clamp(reactor->pid_error_sum, -1e5, 1e5);  // Reduced integral windup
+    
     real_t derivative = (error - reactor->pid_last_error) / reactor->dt;
     reactor->pid_last_error = error;
 
-    real_t delta_k = reactor->pid_kp * error + reactor->pid_ki * reactor->pid_error_sum + reactor->pid_kd * derivative;
-
-    reactor->k_control_rods += clamp(delta_k, -reactor->dt, reactor->dt);
+    real_t delta_k = reactor->pid_kp * error + 
+                     reactor->pid_ki * reactor->pid_error_sum + 
+                     reactor->pid_kd * derivative;
+    
+    reactor->k_control_rods += clamp(delta_k * reactor->dt, -0.001, 0.001);  // Smaller adjustments
     reactor->k_control_rods = clamp(reactor->k_control_rods, CR_MIN, CR_MAX);
 
     reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_mod + delta_k_xenon;
