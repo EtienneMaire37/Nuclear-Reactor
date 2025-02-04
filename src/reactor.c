@@ -136,6 +136,7 @@ void reactor_step(reactor_t* reactor)
     reactor->pid_last_error = error;
 
     real_t delta_k = reactor->pid_kp * error + reactor->pid_ki * reactor->pid_error_sum + reactor->pid_kd * derivative;
+    delta_k *= reactor->dt;
 
     reactor->k_control_rods += clamp(delta_k, -reactor->dt, reactor->dt);
     reactor->k_control_rods = clamp(reactor->k_control_rods, CR_MIN, CR_MAX);
