@@ -4,6 +4,14 @@
 #include <string.h>
 #include <math.h>
 
+#include <wchar.h>
+
+#include <io.h>
+#include <fcntl.h>
+#ifndef _O_U16TEXT
+  #define _O_U16TEXT 0x20000
+#endif
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define clamp(t, a, b) min(max(t, a), b)
@@ -39,12 +47,12 @@ int main()
     1. / steps_per_second // dt
     );
 
-    printf("time,neutron population,core temperature,multiplication factor k,thermal power,xenon concentration,iodine concentration,electric power,control rods' positions\n");
+    wprintf(L"time,neutron population,core temperature,multiplication factor k,thermal power,xenon concentration,iodine concentration,electric power,control rods' positions\n");
 
 
     for (uint32_t i = 0; i < 1000000; i++)
     {
-        printf("%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
+        wprintf(L"%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
         i, reactor->n, reactor->T - 273.15, reactor->k, 
         reactor->P_thermal, reactor->X, reactor->I, reactor->P_electric, 
         1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
