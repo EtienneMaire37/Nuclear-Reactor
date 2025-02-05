@@ -49,8 +49,9 @@ typedef struct reactor
 #define LAMBDA_X     2.1e-5  // Xe-135 decay (s⁻¹)
 #define SIGMA_X      3e-18   // Xe-135 absorption cross-section (cm²)
 #define GAMMA_I      0.064   // I-135 yield
-#define GAMMA_X      0.002   // Xe-135 yield
+#define GAMMA_X      0.001   // Xe-135 yield
 #define SIGMA_F      0.0438  // Macroscopic fission cross-section (cm⁻¹)
+#define SIGMA_I      0.1     // I-135 absorption cross-section (cm²)
 
 #define CR_MIN   0.95       // Minimum control rod position
 #define CR_MAX   1.05       // Maximum control rod position

@@ -6,8 +6,8 @@
 
 #include <wchar.h>
 
-#include <io.h>
-#include <fcntl.h>
+// #include <io.h>
+// #include <fcntl.h>
 #ifndef _O_U16TEXT
   #define _O_U16TEXT 0x20000
 #endif
@@ -24,14 +24,14 @@
 #include "steam.c"
 #include "reactor.c"
 
-#define TARGET_N 9.6e15
+#define TARGET_N 1e16
 
 int main()
 {
     uint32_t steps_per_second = 1000;
     reactor_t* reactor = reactor_create(    // GE BWR/4
     CR_MIN,         // k
-    3.2e-7,           // κ
+    3.2e-7,         // κ
     1e-4,           // Λ
     0.0065,         // β
     1e7,            // C 
@@ -49,10 +49,9 @@ int main()
 
     wprintf(L"time,neutron population,core temperature,multiplication factor k,thermal power,xenon concentration,iodine concentration,electric power,control rods' positions\n");
 
-
     for (uint32_t i = 0; i < 1000000; i++)
     {
-        wprintf(L"%d,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf,%Lf\n", 
+        wprintf(L"%d,%f,%f,%f,%f,%f,%f,%f,%f\n", 
         i, reactor->n, reactor->T - 273.15, reactor->k, 
         reactor->P_thermal, reactor->X, reactor->I, reactor->P_electric, 
         1 - (reactor->k_control_rods - CR_MIN) / (CR_MAX - CR_MIN));
@@ -61,7 +60,7 @@ int main()
             reactor_step(reactor);
 
         if (reactor->target_n < TARGET_N)
-            reactor->target_n *= 1.005;
+            reactor->target_n *= 1.0002;
         else
             reactor->target_n = TARGET_N;
     }

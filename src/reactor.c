@@ -115,15 +115,12 @@ void reactor_step(reactor_t* reactor)
     real_t v = 2.2e5;  // Thermal neutron velocity (cm/s)
     real_t phi = reactor->n / v / reactor->lambda;  // n/cm²/s
 
-    // Implicit Integration
-    real_t termI = GAMMA_I * SIGMA_F * phi;
-    reactor->I = (reactor->I + reactor->dt * termI) / (1 + reactor->dt * LAMBDA_I);
-    reactor->I = clamp(reactor->I, 0.0, 1e20);
+    reactor->I += (GAMMA_I * SIGMA_F * phi - reactor->I * LAMBDA_I - SIGMA_I * phi) * reactor->dt;
+    reactor->I = clamp(reactor->I, 0., 1e20);
 
-    real_t termX = LAMBDA_I * reactor->I + GAMMA_X * SIGMA_F * phi;
-    real_t denomX = 1 + reactor->dt * (LAMBDA_X + SIGMA_X * phi);
-    reactor->X = (reactor->X + reactor->dt * termX) / denomX;
-    reactor->X = clamp(reactor->X, 0.0, MAX_XENON);
+    // reactor->X += (GAMMA_X * SIGMA_F * phi - reactor->X * LAMBDA_X - SIGMA_X * phi) * reactor->dt;
+    reactor->X += (GAMMA_X * SIGMA_F * phi + reactor->I * LAMBDA_I - (LAMBDA_X + SIGMA_X * phi) * reactor->X) * reactor->dt;
+    reactor->X = clamp(reactor->X, 0., MAX_XENON);
 
     real_t delta_k_xenon = -SIGMA_X * reactor->X / SIGMA_F;
     real_t delta_k_doppler = reactor->alpha_doppler * (reactor->T - reactor->T_initial);
@@ -135,11 +132,10 @@ void reactor_step(reactor_t* reactor)
     real_t derivative = (error - reactor->pid_last_error) / reactor->dt;
     reactor->pid_last_error = error;
 
-    real_t delta_k = reactor->pid_kp * error + 
-                     reactor->pid_ki * reactor->pid_error_sum + 
-                     reactor->pid_kd * derivative;
-    
-    reactor->k_control_rods += clamp(delta_k * reactor->dt, -0.001, 0.001);  // Smaller adjustments
+    real_t delta_k = reactor->pid_kp * error + reactor->pid_ki * reactor->pid_error_sum + reactor->pid_kd * derivative;
+    delta_k *= reactor->dt;
+
+    reactor->k_control_rods += clamp(delta_k, -reactor->dt, reactor->dt);
     reactor->k_control_rods = clamp(reactor->k_control_rods, CR_MIN, CR_MAX);
 
     reactor->k = reactor->k_control_rods + delta_k_doppler + delta_k_mod + delta_k_xenon;
