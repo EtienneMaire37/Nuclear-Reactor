@@ -31,7 +31,7 @@ int main()
     uint32_t steps_per_second = 1000;
     reactor_t* reactor = reactor_create(    // GE BWR/4
     CR_MIN,         // k
-    3.2e-7,         // κ
+    3.04e-7,        // κ
     1e-4,           // Λ
     0.0065,         // β
     1e7,            // C 
@@ -39,7 +39,7 @@ int main()
     215. + 273.15,  // Coolant temp
     1e4,            // Initial n
     215. + 273.15,  // Initial T
-    0, //-1e-5,     // doppler coefficient
+    -1e-5,          // doppler coefficient
     1e5,            // target n
     784. / 3000.,   // efficiency
     285. + 273.15,  // coolant boiling point
@@ -60,7 +60,7 @@ int main()
             reactor_step(reactor);
 
         if (reactor->target_n < TARGET_N)
-            reactor->target_n *= 1.0002;
+            reactor->target_n *= 1.00075;
         else
             reactor->target_n = TARGET_N;
     }

@@ -107,7 +107,7 @@ void reactor_step(reactor_t* reactor)
     real_t delta_h = h_steam - h_water;
     real_t m_dot = (delta_h > 0) ? reactor->P_thermal / delta_h : 0.;
     
-    reactor->P_electric = m_dot * (h_steam - h_water) * reactor->efficiency * 0.95;
+    reactor->P_electric = m_dot * (h_steam - h_water) * reactor->efficiency;
 
     if (reactor->P_electric < 0) reactor->P_electric = 0.;
 
