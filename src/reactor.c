@@ -111,14 +111,13 @@ void reactor_step(reactor_t* reactor)
 
     if (reactor->P_electric < 0) reactor->P_electric = 0.;
 
-    // real_t phi = reactor->n / reactor->lambda; // Neutron flux
-    real_t v = 2.2e5;  // Thermal neutron velocity (cm/s)
-    real_t phi = reactor->n / v / reactor->lambda;  // n/cm²/s
+    real_t phi = reactor->n / reactor->lambda * reactor->dt; // Neutron flux
+    // real_t v = 2.2e5;  // Thermal neutron velocity (cm/s)
+    // real_t phi = reactor->n / v / reactor->lambda;  // n/cm²/s
 
     reactor->I += (GAMMA_I * SIGMA_F * phi - reactor->I * LAMBDA_I - SIGMA_I * phi) * reactor->dt;
-    reactor->I = clamp(reactor->I, 0., 1e20);
+    reactor->I = clamp(reactor->I, 0., MAX_IODINE);
 
-    // reactor->X += (GAMMA_X * SIGMA_F * phi - reactor->X * LAMBDA_X - SIGMA_X * phi) * reactor->dt;
     reactor->X += (GAMMA_X * SIGMA_F * phi + reactor->I * LAMBDA_I - (LAMBDA_X + SIGMA_X * phi) * reactor->X) * reactor->dt;
     reactor->X = clamp(reactor->X, 0., MAX_XENON);
 

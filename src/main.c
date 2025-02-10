@@ -28,7 +28,7 @@
 
 int main()
 {
-    uint32_t steps_per_second = 1000;
+    uint32_t steps_per_second = 10000;
     reactor_t* reactor = reactor_create(    // GE BWR/4
     CR_MIN,         // k
     3.04e-7,        // κ
@@ -49,7 +49,7 @@ int main()
 
     wprintf(L"time,neutron population,core temperature,multiplication factor k,thermal power,xenon concentration,iodine concentration,electric power,control rods' positions\n");
 
-    for (uint32_t i = 0; i < 1000000; i++)
+    for (uint32_t i = 0; i < 100000; i++)
     {
         wprintf(L"%d,%f,%f,%f,%f,%f,%f,%f,%f\n", 
         i, reactor->n, reactor->T - 273.15, reactor->k, 
@@ -60,7 +60,7 @@ int main()
             reactor_step(reactor);
 
         if (reactor->target_n < TARGET_N)
-            reactor->target_n *= 1.00075;
+            reactor->target_n *= 1.0003;
         else
             reactor->target_n = TARGET_N;
     }
